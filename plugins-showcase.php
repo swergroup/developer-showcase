@@ -4,13 +4,22 @@ Plugin Name: Plugins Showcase
 Plugin URI: #
 Description: Plugin showcase manager for WordPress plugin developers. 
 Author: SWERgroup
-Version: 0.1a
+Version: 0.2
 Author URI: http://swergroup.com
 */
 
+/*
+ * Includes code from:
+ * https://code.google.com/p/wordpress-plugin-readme-parser/
+ */
 
 
-class SWER_PluginCheck {
+register_uninstall_hook( __FILE__, 'swer_showcasw_plugin_uninstall' );
+function swer_showcasw_plugin_uninstall(){
+    
+}
+
+class SWER_Showcase_Plugin {
 	 
 	/*--------------------------------------------*
 	 * Constructor
@@ -20,36 +29,21 @@ class SWER_PluginCheck {
 	 * Initializes the plugin by setting localization, filters, and administration functions.
 	 */
 	function __construct() {
+        require_once( dirname(__FILE__) . '/lib/parse-readme.php');
+		register_activation_hook( __FILE__, array( &$this, 'activate' ) );
+		register_deactivation_hook( __FILE__, array( &$this, 'deactivate' ) );
 		
 		// load plugin text domain
-		add_action( 'init', array( $this, 'textdomain' ) );
+		add_action( 'init', array( &$this, '_textdomain' ) );
+        add_action( 'init', array( &$this, '_register_post_types' ) );  
+        add_action( 'add_meta_boxes', array( &$this, '_add_meta_boxes' ));
+        add_action( 'save_post', array( &$this, '_save_post' ) );
 
-		// Register admin styles and scripts
+        add_filter( 'the_content', array( &$this, 'the_content') );
 		#add_action( 'admin_print_styles', array( $this, 'register_admin_styles' ) );
 		#add_action( 'admin_enqueue_scripts', array( $this, 'register_admin_scripts' ) );
-	
-		// Register site styles and scripts
 		#add_action( 'wp_enqueue_scripts', array( $this, 'register_plugin_styles' ) );
 		#add_action( 'wp_enqueue_scripts', array( $this, 'register_plugin_scripts' ) );
-
-		register_activation_hook( __FILE__, array( $this, 'activate' ) );
-		register_deactivation_hook( __FILE__, array( $this, 'deactivate' ) );
-		register_uninstall_hook( __FILE__, array( $this, 'uninstall' ) );
-		
-	    /*
-	     * TODO:
-	     * Define the custom functionality for your plugin. The first parameter of the
-	     * add_action/add_filter calls are the hooks into which your code should fire.
-	     *
-	     * The second parameter is the function name located within this class. See the stubs
-	     * later in the file.
-	     *
-	     * For more information: 
-	     * http://codex.wordpress.org/Plugin_API#Hooks.2C_Actions_and_Filters
-	     */
-	    #add_action( 'TODO', array( $this, 'action_method_name' ) );
-	    #add_filter( 'TODO', array( $this, 'filter_method_name' ) );
-
 	} // end constructor
 	
 	/**
@@ -58,7 +52,6 @@ class SWER_PluginCheck {
 	 * @params	$network_wide	True if WPMU superadmin uses "Network Activate" action, false if WPMU is disabled or plugin is activated on an individual blog 
 	 */
 	public function activate( $network_wide ) {
-		// TODO define activation functionality here
 	} // end activate
 	
 	/**
@@ -67,98 +60,197 @@ class SWER_PluginCheck {
 	 * @params	$network_wide	True if WPMU superadmin uses "Network Activate" action, false if WPMU is disabled or plugin is activated on an individual blog 
 	 */
 	public function deactivate( $network_wide ) {
-		// TODO define deactivation functionality here		
 	} // end deactivate
 	
-	/**
-	 * Fired when the plugin is uninstalled.
-	 *
-	 * @params	$network_wide	True if WPMU superadmin uses "Network Activate" action, false if WPMU is disabled or plugin is activated on an individual blog 
-	 */
-	public function uninstall( $network_wide ) {
-		// TODO define uninstall functionality here		
-	} // end uninstall
 
 	/**
 	 * Loads the plugin text domain for translation
 	 */
-	public function textdomain() {
+	public function _textdomain() {
 		// TODO: replace "plugin-name-locale" with a unique value for your plugin
-		load_plugin_textdomain( 'plugin-name-locale', false, dirname( plugin_basename( __FILE__ ) ) . '/lang' );
+		load_plugin_textdomain( 'swer-showcase-plugins', false, dirname( plugin_basename( __FILE__ ) ) . '/lang' );
 	}
 
 	/**
 	 * Registers and enqueues admin-specific styles.
 	 */
-	public function register_admin_styles() {
+	public function _register_admin_styles() {
 	
 		// TODO change 'plugin-name' to the name of your plugin
-		wp_enqueue_style( 'plugin-name-admin-styles', plugins_url( 'plugin-name/css/admin.css' ) );
+		wp_enqueue_style( 'swer-showcase-plugins-admin-styles', plugins_url( 'plugin-name/css/admin.css' ) );
 	
 	} // end register_admin_styles
 
 	/**
 	 * Registers and enqueues admin-specific JavaScript.
 	 */	
-	public function register_admin_scripts() {
+	public function _register_admin_scripts() {
 	
 		// TODO change 'plugin-name' to the name of your plugin
-		wp_enqueue_script( 'plugin-name-admin-script', plugins_url( 'plugin-name/js/admin.js' ) );
+		wp_enqueue_script( 'swer-showcase-plugins-admin-script', plugins_url( 'plugin-name/js/admin.js' ) );
 	
 	} // end register_admin_scripts
 	
 	/**
 	 * Registers and enqueues plugin-specific styles.
 	 */
-	public function register_plugin_styles() {
+	public function _register_plugin_styles() {
 	
 		// TODO change 'plugin-name' to the name of your plugin
-		wp_enqueue_style( 'plugin-name-plugin-styles', plugins_url( 'plugin-name/css/display.css' ) );
+		wp_enqueue_style( 'swer-showcase-plugins-plugin-styles', plugins_url( 'plugin-name/css/display.css' ) );
 	
 	} // end register_plugin_styles
 	
 	/**
 	 * Registers and enqueues plugin-specific scripts.
 	 */
-	public function register_plugin_scripts() {
+	public function _register_plugin_scripts() {
 	
 		// TODO change 'plugin-name' to the name of your plugin
-		wp_enqueue_script( 'plugin-name-plugin-script', plugins_url( 'plugin-name/js/display.js' ) );
+		wp_enqueue_script( 'swer-showcase-plugins-plugin-script', plugins_url( 'plugin-name/js/display.js' ) );
 	
 	} // end register_plugin_scripts
+
+    public function _register_post_types() {
+      $labels = array(
+        'name' => _x('Plugins', 'post type general name', 'swer-showcase-plugins'),
+        'singular_name' => _x('Plugin', 'post type singular name', 'swer-showcase-plugins'),
+        'add_new' => _x('Add New', 'plugin', 'swer-showcase-plugins'),
+        'add_new_item' => __('Add New Plugin', 'swer-showcase-plugins'),
+        'edit_item' => __('Edit Plugin', 'swer-showcase-plugins'),
+        'new_item' => __('New Plugin', 'swer-showcase-plugins'),
+        'all_items' => __('All Plugins', 'swer-showcase-plugins'),
+        'view_item' => __('View Plugins', 'swer-showcase-plugins'),
+        'search_items' => __('Search Plugins', 'swer-showcase-plugins'),
+        'not_found' =>  __('No plugins found', 'swer-showcase-plugins'),
+        'not_found_in_trash' => __('No plugins found in Trash', 'swer-showcase-plugins'), 
+        'parent_item_colon' => '',
+        'menu_name' => __('Showcase', 'swer-showcase-plugins')
+
+      );
+      $args = array(
+        'labels' => $labels,
+        'public' => true,
+        'publicly_queryable' => true,
+        'show_ui' => true, 
+        'show_in_menu' => true, 
+        'query_var' => true,
+        'rewrite' => array( 'slug' => _x( 'wordpress-plugin', 'URL slug', 'swer-showcase-plugins' ) ),
+        'capability_type' => 'page',
+        'has_archive' => true, 
+        'hierarchical' => false,
+        'menu_position' => null,
+        'supports' => array( 'title', 'editor', 'thumbnail', 'excerpt', 'custom-fields', 'revisions', 'page-attributes')
+      ); 
+      register_post_type('plugin', $args);
+    }
+
+    public function _add_meta_boxes(){
+        add_meta_box( 'showcase_plugins_readme', "Plugin Info", array(&$this,'metabox_readme'), 'plugin', 'side', 'core' ); 
+    }
+
+    public function metabox_readme( $post ){
+        $slug = get_post_meta( $post->ID, 'plugin_slug', true );
+        wp_nonce_field( plugin_basename( __FILE__ ), 'swer_sp_slug' );
+        echo '<label for="swer_sp_slug"><strong>';
+        _e("Plugin slug", 'myplugin_textdomain' );
+        echo '</strong></label> ';
+        echo '<input type="text" id="swer_sp_slug" name="swer_sp_slug" value="'.$slug.'" size="10" />';
+        
+        if( $slug ):
+            echo $this->get_plugin_info_list( $slug );
+        endif;
+    }
+
+    public function _save_post( $post_id ){
+        if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) return;
+        if( 'plugin' == $_POST['post_type'] ):
+            update_post_meta( $post_id, 'plugin_slug', $_POST['swer_sp_slug'] );
+        endif;        
+    }
+
+
+    private function _parse_readme_file( $content ){
+        $wp_readme_parser = new WordPress_Readme_Parser;
+	    $new_content = $wp_readme_parser->parse_readme_contents( $content );
+        return $new_content;
+    }
 	
 	/*--------------------------------------------*
 	 * Core Functions
 	 *---------------------------------------------*/
 	
-	/**
- 	 * Note:  Actions are points in the execution of a page or process
-	 *        lifecycle that WordPress fires.
-	 *
-	 *		  WordPress Actions: http://codex.wordpress.org/Plugin_API#Actions
-	 *		  Action Reference:  http://codex.wordpress.org/Plugin_API/Action_Reference
-	 *
-	 */
-	function action_method_name() {
-    	// TODO define your action method here
-	} // end action_method_name
+	public function get_remote_readme_file( $slug ){
+        $readme = wp_remote_get( 'http://plugins.svn.wordpress.org/'.$slug.'/trunk/readme.txt' );
+        if( ! is_wp_error( $readme ) ):
+    	    return $this->_parse_readme_file($readme['body']);
+    	else:
+    	    return false;
+    	endif;
+	}
 	
-	/**
-	 * Note:  Filters are points of execution in which WordPress modifies data
-	 *        before saving it or sending it to the browser.
-	 *
-	 *		  WordPress Filters: http://codex.wordpress.org/Plugin_API#Filters
-	 *		  Filter Reference:  http://codex.wordpress.org/Plugin_API/Filter_Reference
-	 *
-	 */
-	function filter_method_name() {
-	    // TODO define your filter method here
-	} // end filter_method_name
-  
+	
+	public function get_plugin_remote_info( $slug ){
+	    $key = '_swer_sp_'.$slug.'_plugin_remote_info';
+        if ( false === ( $plugin_remote_info = get_transient( $key ) ) ) {
+    	    $res = wp_remote_get( 'http://wordpress.org/extend/plugins/'.$slug.'/' );
+            if( ! is_wp_error( $res ) ):
+                preg_match( '/content\=\"UserDownloads\:(.*)\"/', $res['body'], $count );
+                #preg_match( '/\<meta\ itemprop\=\"RatingValue\" content\=\"(.*)\"\>/', $res['body'], $rateval );
+                #preg_match( '/\<meta\ itemprop\=\"RatingCount\" content\=\"(.*)\"\>/', $res['body'], $ratecount );
+                preg_match( '/\<span\>(.*)\ out\ of\ (.*)\ stars\<\/span\>/', $res['body'], $rate );
+                preg_match( '/\<p\>(.*)\ of\ (.*)\ support\ threads/', $res['body'], $support );
+                $plugin_remote_info = array(
+                    'count' => $count[1],
+                    'rating' => $rate[1].'/'.$rate[2],
+                    'support' => $support[1].'/'.$support[2]
+                );
+    	    endif;
+    	}
+    	return $plugin_remote_info;
+	}
+	
+	public function get_downloads( $slug ){
+	    $res = wp_remote_get( 'http://wordpress.org/extend/plugins/'.$slug.'/' );
+        if( ! is_wp_error( $res ) ):
+            preg_match( '/content\=\"UserDownloads\:(.*)\"/', $res['body'], $count );
+            return $count[1];
+        else:
+            return 'n/a';
+        endif;
+	}
+	
+	public function get_plugin_info_list( $slug ){
+	    $key = '_swer_sp_'.$slug.'_get_plugin_info_list';
+        if ( false === ( $plugin_info = get_transient( $key ) ) ) {
+
+    	    $readme = $this->get_remote_readme_file( $slug );
+    	    $wpinfo = $this->get_plugin_remote_info( $slug );
+    	    
+    	    $svn_base = 'http://plugins.svn.wordpress.org/';
+    	    $svn_link = ($readme['stable_tag']==='trunk') ? $svn_base.$slug.'/trunk/' : $svn_base.$slug.'/tags/'.$readme['stable_tag'].'/';
+    	    
+            $out = '<ul>';
+            $out.= '<li><strong><a href="http://wordpress.org/extend/plugins/'.$slug.'/">'.$readme['name'].'</a></strong></li>';
+            $out.= '<li><strong>Stable Tag</strong>: <a href="'.$svn_link.'">'.$readme['stable_tag'].'</a></li>';
+            $out.= '<li><strong>Requires</strong> '.$readme['requires_at_least'].' &mdash; <strong>Tested</strong> '.$readme['tested_up_to'].'</li>';
+            $out.= '<li><strong>Committers</strong>: '.join(', ', $readme['contributors']).'</li>';
+            $out.= '<li><strong>Tags</strong>: '.join(', ', $readme['tags']).'</li>';
+            $out.= '<li><strong>Downloads</strong>: '.$wpinfo['count'].'</li>';
+            $out.= '<li><strong>Rating</strong>: '.$wpinfo['rating'].'</li>';
+            $out.= '<li><strong>Support</strong>: '.$wpinfo['support'].'</li>';
+            $out.= '</ul>';
+            $plugin_info = $out;
+            set_transient( $key, $plugin_info );
+        }
+        return $plugin_info;
+	}
+	
+
 } // end class
 
 // TODO: update the instantiation call of your plugin to the name given at the class definition
-$plugin_name = new SWER_PluginCheck();
+$plugin_name = new SWER_Showcase_Plugin();
 
 
 
