@@ -36,16 +36,16 @@ class SWER_Showcase_Plugin {
 		// load plugin text domain
 		add_action( 'init', array( &$this, '_textdomain' ) );
         add_action( 'init', array( &$this, '_register_post_types' ) );  
-        add_action( 'add_meta_boxes', array( &$this, '_add_meta_boxes' ));
-        add_action( 'save_post', array( &$this, '_save_post' ) );
 
-        add_filter( 'the_content', array( &$this, 'the_content') );
-        
+        add_action( 'add_meta_boxes', array( &$this, '_add_meta_boxes' ));
+		add_action( 'admin_enqueue_scripts', array( &$this, '_register_admin_scripts' ) );
         add_filter( 'manage_plugin_posts_columns', array( &$this, 'manage_plugin_posts_columns' ) );
         add_action( 'manage_plugin_posts_custom_column', array( &$this, 'manage_plugin_posts_custom_column' ), 10, 2);
+        add_action( 'save_post', array( &$this, '_save_post' ) );
+        add_filter( 'the_content', array( &$this, 'the_content') );
+
         
 		#add_action( 'admin_print_styles', array( $this, 'register_admin_styles' ) );
-		#add_action( 'admin_enqueue_scripts', array( $this, 'register_admin_scripts' ) );
 		#add_action( 'wp_enqueue_scripts', array( $this, 'register_plugin_styles' ) );
 		#add_action( 'wp_enqueue_scripts', array( $this, 'register_plugin_scripts' ) );
 	} // end constructor
@@ -71,7 +71,6 @@ class SWER_Showcase_Plugin {
 	 * Loads the plugin text domain for translation
 	 */
 	public function _textdomain() {
-		// TODO: replace "plugin-name-locale" with a unique value for your plugin
 		load_plugin_textdomain( 'swer-showcase-plugins', false, dirname( plugin_basename( __FILE__ ) ) . '/lang' );
 	}
 
@@ -79,39 +78,29 @@ class SWER_Showcase_Plugin {
 	 * Registers and enqueues admin-specific styles.
 	 */
 	public function _register_admin_styles() {
-	
-		// TODO change 'plugin-name' to the name of your plugin
-		wp_enqueue_style( 'swer-showcase-plugins-admin-styles', plugins_url( 'plugin-name/css/admin.css' ) );
-	
+		wp_enqueue_style( 'swer-showcase-plugins-admin-styles', plugins_url( 'wp-plugins-showcase/css/admin.css' ) );
 	} // end register_admin_styles
 
 	/**
 	 * Registers and enqueues admin-specific JavaScript.
 	 */	
 	public function _register_admin_scripts() {
-	
-		// TODO change 'plugin-name' to the name of your plugin
-		wp_enqueue_script( 'swer-showcase-plugins-admin-script', plugins_url( 'plugin-name/js/admin.js' ) );
-	
+	    wp_enqueue_script( 'jquery' );
+		wp_enqueue_script( 'swer-showcase-plugins-admin-script', plugins_url( 'wp-plugins-showcase/lib/sparkline.min.js' ), 'jquery');	
 	} // end register_admin_scripts
 	
 	/**
 	 * Registers and enqueues plugin-specific styles.
 	 */
 	public function _register_plugin_styles() {
-	
-		// TODO change 'plugin-name' to the name of your plugin
-		wp_enqueue_style( 'swer-showcase-plugins-plugin-styles', plugins_url( 'plugin-name/css/display.css' ) );
-	
+		wp_enqueue_style( 'swer-showcase-plugins-plugin-styles', plugins_url( 'wp-plugins-showcase/css/display.css' ) );	
 	} // end register_plugin_styles
 	
 	/**
 	 * Registers and enqueues plugin-specific scripts.
 	 */
-	public function _register_plugin_scripts() {
-	
-		// TODO change 'plugin-name' to the name of your plugin
-		wp_enqueue_script( 'swer-showcase-plugins-plugin-script', plugins_url( 'plugin-name/js/display.js' ) );
+	public function _register_plugin_scripts() {	
+		wp_enqueue_script( 'swer-showcase-plugins-plugin-script', plugins_url( 'wp-plugins-showcase/js/display.js' ) );
 	
 	} // end register_plugin_scripts
 
@@ -167,8 +156,10 @@ class SWER_Showcase_Plugin {
             break;
             
             case 'plugin_downloads':
-                echo $wpinfo['count'];
+                echo '<strong>'.$wpinfo['count'].'</strong> <br>';
+                echo '<span class="sparkline">'.$this->get_remote_stats( $slug ).'</span>';
             break;
+            
         endswitch;
     }
     
@@ -207,22 +198,44 @@ class SWER_Showcase_Plugin {
         return $new_content;
     }
 	
-	/*--------------------------------------------*
-	 * Core Functions
-	 *---------------------------------------------*/
-	
-	public function get_remote_readme_file( $slug ){
-	    $key = '_swer_sp_'.$slug.'_remote_readme_file';
+/*--------------------------------------------*
+* Core Functions
+*---------------------------------------------*/
+
+
+    public function get_remote_stats( $slug, $days=30){
+        $key = '_swer_sp_'.$slug.'_get_remote_statss';
+        if ( false === ( $parsed = get_transient( $key ) ) ) {
+            $stats = wp_remote_get( 'http://api.wordpress.org/stats/plugin/1.0/downloads.php?slug='.$slug.'&limit='.$days.'&callback=?' );
+            if( ! is_wp_error( $stats ) ):
+                $out = array();
+                $data = json_decode($stats['body'],true);
+                foreach( $data as $k=>$count):
+                    $out[] = $count;
+                endforeach;
+                $sparkline = join(',',$out);
+            else:
+                $sparkline = '';
+            endif;
+        }
+        return $sparkline;
+        
+    }
+
+     
+     
+    public function get_remote_readme_file( $slug ){
+        $key = '_swer_sp_'.$slug.'_remote_readme_file';
         if ( false === ( $parsed = get_transient( $key ) ) ) {
             $readme = wp_remote_get( 'http://plugins.svn.wordpress.org/'.$slug.'/trunk/readme.txt' );
             if( ! is_wp_error( $readme ) ):
-        	    $parsed = $this->_parse_readme_file($readme['body']);
-        	else:
-        	    $parsed = false;
-        	endif;
+                $parsed = $this->_parse_readme_file($readme['body']);
+            else:
+                $parsed = false;
+            endif;
         }
         return $parsed;
-	}
+    }
 	
 	
 	public function get_plugin_remote_info( $slug ){
