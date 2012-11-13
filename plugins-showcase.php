@@ -4,7 +4,7 @@ Plugin Name: Plugins Showcase
 Plugin URI: #
 Description: Plugin showcase manager for WordPress plugin developers. 
 Author: SWERgroup
-Version: 0.2
+Version: 0.3
 Author URI: http://swergroup.com
 */
 
@@ -40,6 +40,10 @@ class SWER_Showcase_Plugin {
         add_action( 'save_post', array( &$this, '_save_post' ) );
 
         add_filter( 'the_content', array( &$this, 'the_content') );
+        
+        add_filter( 'manage_plugin_posts_columns', array( &$this, 'manage_plugin_posts_columns' ) );
+        add_action( 'manage_plugin_posts_custom_column', array( &$this, 'manage_plugin_posts_custom_column' ), 10, 2);
+        
 		#add_action( 'admin_print_styles', array( $this, 'register_admin_styles' ) );
 		#add_action( 'admin_enqueue_scripts', array( $this, 'register_admin_scripts' ) );
 		#add_action( 'wp_enqueue_scripts', array( $this, 'register_plugin_styles' ) );
@@ -120,7 +124,7 @@ class SWER_Showcase_Plugin {
         'edit_item' => __('Edit Plugin', 'swer-showcase-plugins'),
         'new_item' => __('New Plugin', 'swer-showcase-plugins'),
         'all_items' => __('All Plugins', 'swer-showcase-plugins'),
-        'view_item' => __('View Plugins', 'swer-showcase-plugins'),
+        'view_item' => __('View Plugin', 'swer-showcase-plugins'),
         'search_items' => __('Search Plugins', 'swer-showcase-plugins'),
         'not_found' =>  __('No plugins found', 'swer-showcase-plugins'),
         'not_found_in_trash' => __('No plugins found in Trash', 'swer-showcase-plugins'), 
@@ -135,7 +139,7 @@ class SWER_Showcase_Plugin {
         'show_ui' => true, 
         'show_in_menu' => true, 
         'query_var' => true,
-        'rewrite' => array( 'slug' => _x( 'wordpress-plugin', 'URL slug', 'swer-showcase-plugins' ) ),
+        'rewrite' => array( 'slug' => _x( 'wordpress-plugins', 'URL slug', 'swer-showcase-plugins' ) ),
         'capability_type' => 'page',
         'has_archive' => true, 
         'hierarchical' => false,
@@ -144,6 +148,33 @@ class SWER_Showcase_Plugin {
       ); 
       register_post_type('plugin', $args);
     }
+    
+    
+    public function manage_plugin_posts_columns( $post_columns ){
+        $post_columns['plugin_info'] = 'Plugin Info';
+        $post_columns['plugin_downloads'] = 'Downloads';
+        return $post_columns;
+    }
+    
+    public function manage_plugin_posts_custom_column( $column, $post_id ){
+        $slug = get_post_meta( $post_id, 'plugin_slug', true );
+        $parsed = $this->get_remote_readme_file( $slug );
+        $wpinfo = $this->get_plugin_remote_info( $slug );
+        switch( $column ):
+            case 'plugin_info':
+                echo '<strong><a href="http://wordpress.org/extend/plugins/'.$slug.'/">'.$parsed['name'].'</a></strong> <br>';
+                echo 'Rating: '.$wpinfo['rating'].' &mdash; Support: '.$wpinfo['support'];
+            break;
+            
+            case 'plugin_downloads':
+                echo $wpinfo['count'];
+            break;
+        endswitch;
+    }
+    
+    
+    
+    
 
     public function _add_meta_boxes(){
         add_meta_box( 'showcase_plugins_readme', "Plugin Info", array(&$this,'metabox_readme'), 'plugin', 'side', 'core' ); 
@@ -181,12 +212,16 @@ class SWER_Showcase_Plugin {
 	 *---------------------------------------------*/
 	
 	public function get_remote_readme_file( $slug ){
-        $readme = wp_remote_get( 'http://plugins.svn.wordpress.org/'.$slug.'/trunk/readme.txt' );
-        if( ! is_wp_error( $readme ) ):
-    	    return $this->_parse_readme_file($readme['body']);
-    	else:
-    	    return false;
-    	endif;
+	    $key = '_swer_sp_'.$slug.'_remote_readme_file';
+        if ( false === ( $parsed = get_transient( $key ) ) ) {
+            $readme = wp_remote_get( 'http://plugins.svn.wordpress.org/'.$slug.'/trunk/readme.txt' );
+            if( ! is_wp_error( $readme ) ):
+        	    $parsed = $this->_parse_readme_file($readme['body']);
+        	else:
+        	    $parsed = false;
+        	endif;
+        }
+        return $parsed;
 	}
 	
 	
