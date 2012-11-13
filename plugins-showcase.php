@@ -39,15 +39,15 @@ class SWER_Showcase_Plugin {
 
         add_action( 'add_meta_boxes', array( &$this, '_add_meta_boxes' ));
 		add_action( 'admin_enqueue_scripts', array( &$this, '_register_admin_scripts' ) );
+		add_action( 'admin_menu', array( &$this, 'admin_menu' ) );
         add_filter( 'manage_plugin_posts_columns', array( &$this, 'manage_plugin_posts_columns' ) );
         add_action( 'manage_plugin_posts_custom_column', array( &$this, 'manage_plugin_posts_custom_column' ), 10, 2);
         add_action( 'save_post', array( &$this, '_save_post' ) );
-        add_filter( 'the_content', array( &$this, 'the_content') );
-
-        
+        #add_filter( 'the_content', array( &$this, 'the_content') );
+                
 		#add_action( 'admin_print_styles', array( $this, 'register_admin_styles' ) );
 		#add_action( 'wp_enqueue_scripts', array( $this, 'register_plugin_styles' ) );
-		#add_action( 'wp_enqueue_scripts', array( $this, 'register_plugin_scripts' ) );
+		add_action( 'wp_enqueue_scripts', array( &$this, '_register_admin_scripts' ) );
 	} // end constructor
 	
 	/**
@@ -105,7 +105,7 @@ class SWER_Showcase_Plugin {
 	} // end register_plugin_scripts
 
     public function _register_post_types() {
-      $labels = array(
+      $p_labels = array(
         'name' => _x('Plugins', 'post type general name', 'swer-showcase-plugins'),
         'singular_name' => _x('Plugin', 'post type singular name', 'swer-showcase-plugins'),
         'add_new' => _x('Add New', 'plugin', 'swer-showcase-plugins'),
@@ -115,14 +115,14 @@ class SWER_Showcase_Plugin {
         'all_items' => __('All Plugins', 'swer-showcase-plugins'),
         'view_item' => __('View Plugin', 'swer-showcase-plugins'),
         'search_items' => __('Search Plugins', 'swer-showcase-plugins'),
-        'not_found' =>  __('No plugins found', 'swer-showcase-plugins'),
-        'not_found_in_trash' => __('No plugins found in Trash', 'swer-showcase-plugins'), 
+        'not_found' =>  __('No plugin found', 'swer-showcase-plugins'),
+        'not_found_in_trash' => __('No plugin found in Trash', 'swer-showcase-plugins'), 
         'parent_item_colon' => '',
-        'menu_name' => __('Showcase', 'swer-showcase-plugins')
+        'menu_name' => __('WP Plugins', 'swer-showcase-plugins')
 
       );
-      $args = array(
-        'labels' => $labels,
+      $p_args = array(
+        'labels' => $p_labels,
         'public' => true,
         'publicly_queryable' => true,
         'show_ui' => true, 
@@ -135,8 +135,52 @@ class SWER_Showcase_Plugin {
         'menu_position' => null,
         'supports' => array( 'title', 'editor', 'thumbnail', 'excerpt', 'custom-fields', 'revisions', 'page-attributes')
       ); 
-      register_post_type('plugin', $args);
+      register_post_type( 'plugin', $p_args);
+      
+      $t_labels = array(
+        'name' => _x('Themes', 'post type general name', 'swer-showcase-plugins'),
+        'singular_name' => _x('Theme', 'post type singular name', 'swer-showcase-plugins'),
+        'add_new' => _x('Add New', 'theme', 'swer-showcase-plugins'),
+        'add_new_item' => __('Add New Theme', 'swer-showcase-plugins'),
+        'edit_item' => __('Edit Theme', 'swer-showcase-plugins'),
+        'new_item' => __('New Theme', 'swer-showcase-plugins'),
+        'all_items' => __('All Theme', 'swer-showcase-plugins'),
+        'view_item' => __('View Theme', 'swer-showcase-plugins'),
+        'search_items' => __('Search Theme', 'swer-showcase-plugins'),
+        'not_found' =>  __('No theme found', 'swer-showcase-plugins'),
+        'not_found_in_trash' => __('No theme found in Trash', 'swer-showcase-plugins'), 
+        'parent_item_colon' => '',
+        'menu_name' => __('WP Themes', 'swer-showcase-plugins')
+
+      );
+      $t_args = array(
+        'labels' => $t_labels,
+        'public' => true,
+        'publicly_queryable' => true,
+        'show_ui' => true, 
+        'show_in_menu' => true, 
+        'query_var' => true,
+        'rewrite' => array( 'slug' => _x( 'wordpress-themes', 'URL slug', 'swer-showcase-plugins' ) ),
+        'capability_type' => 'page',
+        'has_archive' => true, 
+        'hierarchical' => false,
+        'menu_position' => null,
+        'supports' => array( 'title', 'editor', 'thumbnail', 'excerpt', 'custom-fields', 'revisions', 'page-attributes')
+      ); 
+      register_post_type( 'theme', $t_args);
+      
+      
+      
     }
+    
+    public function admin_menu(){
+        # add_submenu_page( 'edit.php?post_type=plugin', 'Code Snippets', 'Code Snippets', 'publish_posts', 'code-snippets', array( &$this, 'admin_menu_display') );
+    }
+    
+    function admin_menu_display(){
+        // move to external class
+    }
+    
     
     
     public function manage_plugin_posts_columns( $post_columns ){
@@ -156,8 +200,10 @@ class SWER_Showcase_Plugin {
             break;
             
             case 'plugin_downloads':
-                echo '<strong>'.$wpinfo['count'].'</strong> <br>';
-                echo '<span class="sparkline">'.$this->get_remote_stats( $slug ).'</span>';
+                echo '<div class="aligncenter">';
+                echo '<strong>'.$wpinfo['count'].'</strong> ';
+                echo '<span class="sparkline">'.$this->get_remote_stats( $slug, 14).'</span>';
+                echo '</div>';
             break;
             
         endswitch;
@@ -204,8 +250,8 @@ class SWER_Showcase_Plugin {
 
 
     public function get_remote_stats( $slug, $days=30){
-        $key = '_swer_sp_'.$slug.'_get_remote_statss';
-        if ( false === ( $parsed = get_transient( $key ) ) ) {
+        $key = '_swer_sp_'.$slug.'_get_remote_stats';
+        if ( false === ( $sparkline = get_transient( $key ) ) ) {
             $stats = wp_remote_get( 'http://api.wordpress.org/stats/plugin/1.0/downloads.php?slug='.$slug.'&limit='.$days.'&callback=?' );
             if( ! is_wp_error( $stats ) ):
                 $out = array();
@@ -217,6 +263,7 @@ class SWER_Showcase_Plugin {
             else:
                 $sparkline = '';
             endif;
+            set_transient( $key, $sparkline, 60*15 );
         }
         return $sparkline;
         
@@ -234,6 +281,7 @@ class SWER_Showcase_Plugin {
                 $parsed = false;
             endif;
         }
+        set_transient( $key, $parsed, 60*15 );
         return $parsed;
     }
 	
@@ -248,12 +296,17 @@ class SWER_Showcase_Plugin {
                 #preg_match( '/\<meta\ itemprop\=\"RatingCount\" content\=\"(.*)\"\>/', $res['body'], $ratecount );
                 preg_match( '/\<span\>(.*)\ out\ of\ (.*)\ stars\<\/span\>/', $res['body'], $rate );
                 preg_match( '/\<p\>(.*)\ of\ (.*)\ support\ threads/', $res['body'], $support );
+                
+                $rate_value = (isset($rate[1])) ? $rate[1].'/'.$rate[2] : 'n/a';
+                $support_value = (isset($support[1])) ? $support[1].'/'.$support[2] : 'n/a';
+                
                 $plugin_remote_info = array(
                     'count' => $count[1],
-                    'rating' => $rate[1].'/'.$rate[2],
-                    'support' => $support[1].'/'.$support[2]
+                    'rating' => $rate_value,
+                    'support' => $support_value
                 );
     	    endif;
+            set_transient( $key, $plugin_remote_info, 60*15 );
     	}
     	return $plugin_remote_info;
 	}
@@ -282,16 +335,29 @@ class SWER_Showcase_Plugin {
             $out.= '<li><strong><a href="http://wordpress.org/extend/plugins/'.$slug.'/">'.$readme['name'].'</a></strong></li>';
             $out.= '<li><strong>Stable Tag</strong>: <a href="'.$svn_link.'">'.$readme['stable_tag'].'</a></li>';
             $out.= '<li><strong>Requires</strong> '.$readme['requires_at_least'].' &mdash; <strong>Tested</strong> '.$readme['tested_up_to'].'</li>';
-            $out.= '<li><strong>Committers</strong>: '.join(', ', $readme['contributors']).'</li>';
-            $out.= '<li><strong>Tags</strong>: '.join(', ', $readme['tags']).'</li>';
-            $out.= '<li><strong>Downloads</strong>: '.$wpinfo['count'].'</li>';
+            $out.= '<li><strong>Downloads</strong>: '.$wpinfo['count'].' <span class="sparkline">'.$this->get_remote_stats( $slug ).'</span></li>';
             $out.= '<li><strong>Rating</strong>: '.$wpinfo['rating'].'</li>';
             $out.= '<li><strong>Support</strong>: '.$wpinfo['support'].'</li>';
+            $out.= '<li><strong>Committers</strong>: '.join(', ', $readme['contributors']).'</li>';
+            $out.= '<li><strong>Tags</strong>: '.join(', ', $readme['tags']).'</li>';
+            $out.= '';
             $out.= '</ul>';
             $plugin_info = $out;
-            set_transient( $key, $plugin_info );
+            set_transient( $key, $plugin_info, 60*15 );
         }
         return $plugin_info;
+	}
+	
+	
+	
+	public function the_content( $content ){
+	    global $post;
+	    if( 'plugin' == get_post_type($post->ID) ):
+	        $new_content = $this->_parse_readme_file( strip_tags($content) );
+	        return print_r($new_content,true);
+	    else:
+	        return $content;
+	    endif;
 	}
 	
 
@@ -318,25 +384,19 @@ class SWER_PlugCheck_Widget extends WP_Widget {
     }
 
     function widget(){ 
-        $pages = array( 'page2cat', 'uploadplus', 'gengo', 'paypal-shortcodes' );
-        
-        echo '</ul>';
-        $up = $down = $total = 0;
-        foreach( $pages as $page ):        
-            $res = wp_remote_get( 'http://wordpress.org/extend/plugins/'.$page.'/' );
-            if( ! is_wp_error( $res ) ):
-                preg_match( '/content\=\"UserDownloads\:(.*)\"/', $res['body'], $count );
-                preg_match( '/itemprop\=\"name\"\>(.*)\<\/h2/', $res['body'], $head );
-                echo '<li><a href="http://wordpress.org/extend/plugins/'.$page.'/">'.$head[1].'</a> &mdash; '.$count[1].'</li>';
-                $total = $total + $count[1];
-                $up++;
-            else:
-                echo 'n/a';
-                $down++;
-            endif;
-        endforeach;
-        echo '<li>Totale: '.$total."</li>";
-        echo '</ul>';
+        $SSP = new SWER_Showcase_Plugin;
+        $args = array( 'post_type'=>'plugin', 'posts_per_page'=>'1');
+        $plugins = new WP_Query( $args );
+        if( $plugins->have_posts() ):
+            while( $plugins->have_posts() ):
+                $plugins->the_post();
+                # the_title();
+                $slug = get_post_meta( get_the_ID(), 'plugin_slug', true );
+                # echo $slug;
+                echo $SSP->get_plugin_info_list( $slug );
+            endwhile;
+        endif;
+        wp_reset_postdata();                
     }
     
     function update(){ }
