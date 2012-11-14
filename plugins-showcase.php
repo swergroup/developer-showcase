@@ -202,7 +202,7 @@ class SWER_Showcase_Plugin {
             case 'plugin_downloads':
                 echo '<div class="aligncenter">';
                 echo '<strong>'.$wpinfo['count'].'</strong> ';
-                echo '<span class="sparkline">'.$this->get_remote_stats( $slug, 14).'</span>';
+                echo '<span class="sparkline" data-values="'.$this->get_remote_stats( $slug, 14).'"></span>';
                 echo '</div>';
             break;
             
@@ -250,7 +250,7 @@ class SWER_Showcase_Plugin {
 
 
     public function get_remote_stats( $slug, $days=30){
-        $key = '_swer_sp_'.$slug.'_get_remote_stats';
+        $key = '_swer_sp_'.$slug.'_remote_stats';
         if ( false === ( $sparkline = get_transient( $key ) ) ) {
             $stats = wp_remote_get( 'http://api.wordpress.org/stats/plugin/1.0/downloads.php?slug='.$slug.'&limit='.$days.'&callback=?' );
             if( ! is_wp_error( $stats ) ):
@@ -272,7 +272,7 @@ class SWER_Showcase_Plugin {
      
      
     public function get_remote_readme_file( $slug ){
-        $key = '_swer_sp_'.$slug.'_remote_readme_file';
+        $key = '_swer_sp_'.$slug.'_get_remote_readme_file';
         if ( false === ( $parsed = get_transient( $key ) ) ) {
             $readme = wp_remote_get( 'http://plugins.svn.wordpress.org/'.$slug.'/trunk/readme.txt' );
             if( ! is_wp_error( $readme ) ):
@@ -287,7 +287,7 @@ class SWER_Showcase_Plugin {
 	
 	
 	public function get_plugin_remote_info( $slug ){
-	    $key = '_swer_sp_'.$slug.'_plugin_remote_info';
+	    $key = '_swer_sp_'.$slug.'_get_plugin_remote_info';
         if ( false === ( $plugin_remote_info = get_transient( $key ) ) ) {
     	    $res = wp_remote_get( 'http://wordpress.org/extend/plugins/'.$slug.'/' );
             if( ! is_wp_error( $res ) ):
@@ -322,7 +322,7 @@ class SWER_Showcase_Plugin {
 	}
 	
 	public function get_plugin_info_list( $slug ){
-	    $key = '_swer_sp_'.$slug.'_get_plugin_info_list';
+	    $key = '_swer_sp_'.$slug.'_get_plugin_info_list_';
         if ( false === ( $plugin_info = get_transient( $key ) ) ) {
 
     	    $readme = $this->get_remote_readme_file( $slug );
