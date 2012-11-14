@@ -39,7 +39,6 @@ class SWER_Developer_Showcase {
 
         add_action( 'add_meta_boxes', array( &$this, '_add_meta_boxes' ));
 		add_action( 'admin_enqueue_scripts', array( &$this, '_register_admin_scripts' ) );
-		add_action( 'admin_menu', array( &$this, 'admin_menu' ) );
 		
         add_filter( 'manage_plugin_posts_columns', array( &$this, 'manage_plugin_posts_columns' ) );
         add_action( 'manage_plugin_posts_custom_column', array( &$this, 'manage_plugin_posts_custom_column' ), 10, 2);
@@ -49,8 +48,8 @@ class SWER_Developer_Showcase {
         #add_filter( 'the_content', array( &$this, 'the_content') );
                 
 		#add_action( 'admin_print_styles', array( $this, 'register_admin_styles' ) );
-		#add_action( 'wp_enqueue_scripts', array( $this, 'register_plugin_styles' ) );
-		add_action( 'wp_enqueue_scripts', array( &$this, '_register_admin_scripts' ) );
+		#add_action( 'wp_enqueue_scripts', array( $this, 'register_admin_styles' ) );
+		add_action( 'wp_enqueue_scripts', array( &$this, '_register_plugin_scripts' ) );
 	} // end constructor
 	
 	public function activate( $network_wide ) {
@@ -66,21 +65,19 @@ class SWER_Developer_Showcase {
 	}
 
 	public function _register_admin_styles() {
-		wp_enqueue_style( 'swer-developer-showcase-admin-styles', plugins_url( 'wp-plugins-showcase/css/admin.css' ) );
+		#wp_enqueue_style( 'swer-developer-showcase-admin-styles', plugins_url( 'wp-plugins-showcase/css/admin.css' ) );
 	} // end register_admin_styles
 
 	public function _register_admin_scripts() {
-	    wp_enqueue_script( 'jquery' );
-		wp_enqueue_script( 'swer-developer-showcase-admin-script', plugins_url( 'wp-plugins-showcase/lib/sparkline.min.js' ), 'jquery');	
 	} // end register_admin_scripts
 	
 	public function _register_plugin_styles() {
-		wp_enqueue_style( 'swer-developer-showcase-plugin-styles', plugins_url( 'wp-plugins-showcase/css/display.css' ) );	
+		#wp_enqueue_style( 'swer-developer-showcase-plugin-styles', plugins_url( 'wp-plugins-showcase/css/display.css' ) );	
 	} // end register_plugin_styles
 	
 	public function _register_plugin_scripts() {	
-		wp_enqueue_script( 'swer-developer-showcase-plugin-script', plugins_url( 'wp-plugins-showcase/js/display.js' ) );
-	
+	    wp_enqueue_script( 'jquery' );
+		wp_enqueue_script( 'swer-developer-showcase-admin-script', plugins_url( 'wp-plugins-showcase/lib/sparkline.min.js' ), 'jquery');	
 	} // end register_plugin_scripts
 
     public function _register_post_types() {
@@ -146,19 +143,10 @@ class SWER_Developer_Showcase {
         'menu_position' => null,
         'supports' => array( 'title', 'editor', 'thumbnail', 'excerpt', 'custom-fields', 'revisions', 'page-attributes')
       ); 
-      register_post_type( 'theme', $t_args);
-      
-      
-      
+      register_post_type( 'theme', $t_args);      
     }
     
-    public function admin_menu(){
-        # add_submenu_page( 'edit.php?post_type=plugin', 'Code Snippets', 'Code Snippets', 'publish_posts', 'code-snippets', array( &$this, 'admin_menu_display') );
-    }
-    
-    function admin_menu_display(){
-        // move to external class
-    }
+
 
     public function manage_plugin_posts_columns( $post_columns ){
         $post_columns['plugin_info'] = 'Plugin Info';
