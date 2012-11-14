@@ -194,7 +194,7 @@ class SWER_Developer_Showcase {
             case 'theme_downloads':
                 echo '<div class="aligncenter">';
                 echo '<strong>'.$wpinfo['count'].'</strong> ';
-                echo '<span class="sparkline" data-values="'.$this->get_remote_stats( $slug, 14, 'theme').'"></span>';
+                echo '<span class="sparkline" data-values="'.$this->get_remote_stats( $slug, 14, 'themes').'"></span>';
                 echo '</div>';
             break;
             
@@ -383,7 +383,7 @@ class SWER_Developer_Showcase {
             $out = '<ul>';
             $out.= '<li><strong><a href="http://wordpress.org/extend/themes/'.$slug.'/">'.$wpinfo['name'].'</a></strong></li>';
             $out.= '<li><strong>Version</strong>: <a href="'.$svn_link.'">'.$wpinfo['version'].'</a></li>';
-            $out.= '<li><strong>Downloads</strong>: '.$wpinfo['count'].' <span class="sparkline">'.$this->get_remote_stats( $slug, 15, 'theme').'</span></li>';
+            $out.= '<li><strong>Downloads</strong>: '.$wpinfo['count'].' <span class="sparkline">'.$this->get_remote_stats( $slug, 15, 'themes').'</span></li>';
             $out.= '<li><strong>Rating</strong>: '.$wpinfo['rating'].'</li>';
             $out.= '<li><strong>Support</strong>: '.$wpinfo['support'].'</li>';
             $out.= '';
