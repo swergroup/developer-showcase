@@ -187,7 +187,7 @@ class SWER_Developer_Showcase {
         $wpinfo = $this->get_theme_remote_info( $slug );
         switch( $column ):
             case 'theme_info':
-                echo '<strong><a href="http://wordpress.org/extend/themes/'.$slug.'/">'.$parsed['name'].'</a></strong> <br>';
+                echo '<strong><a href="http://wordpress.org/extend/themes/'.$slug.'/">'.$wpinfo['name'].'</a></strong> <br>';
                 echo 'Rating: '.$wpinfo['rating'].' &mdash; Support: '.$wpinfo['support'];
             break;
             
@@ -335,7 +335,7 @@ class SWER_Developer_Showcase {
                     'support' => $support_value
                 );
             endif;
-            #set_transient( $key, $theme_remote_info, 60*15 );
+            set_transient( $key, $theme_remote_info, 60*15 );
         }
         return $theme_remote_info;    
     }
