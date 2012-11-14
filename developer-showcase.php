@@ -30,6 +30,7 @@ class SWER_Developer_Showcase {
 	 */
 	function __construct() {
         require_once( dirname(__FILE__) . '/lib/parse-readme.php');
+        require_once( dirname(__FILE__) . '/developer-showcase-widgets.php');
 		register_activation_hook( __FILE__, array( &$this, 'activate' ) );
 		register_deactivation_hook( __FILE__, array( &$this, 'deactivate' ) );
 		
@@ -414,41 +415,3 @@ $plugin_name = new SWER_Developer_Showcase();
 
 
 
-
-
-
-/*--------------------------------------------*
- * Widget
- *--------------------------------------------*/
-
-class SWER_Plugin_Info_Widget extends WP_Widget {
-
-    
-    function SWER_Plugin_Info_Widget(){ 
-        $widget_ops = $control_ops = array();
-        $this->WP_Widget( 'swer-plugin-info-widget', 'WP Plugin Info', $widget_ops, $control_ops );		
-    }
-
-    function widget(){ 
-        $SSP = new SWER_Developer_Showcase;
-        $args = array( 'post_type'=>'plugin', 'posts_per_page'=>'1');
-        $plugins = new WP_Query( $args );
-        if( $plugins->have_posts() ):
-            while( $plugins->have_posts() ):
-                $plugins->the_post();
-                # the_title();
-                $slug = get_post_meta( get_the_ID(), 'plugin_slug', true );
-                # echo $slug;
-                echo $SSP->get_plugin_info_list( $slug );
-            endwhile;
-        endif;
-        wp_reset_postdata();                
-    }
-    
-    function update(){ }
-    
-    function form(){ }
-}
-
-
-#add_action('widgets_init', create_function('', 'return register_widget("SWER_Plugin_Info_Widget");'));
