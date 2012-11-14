@@ -19,9 +19,7 @@ class SWER_Plugin_Info_Widget extends WP_Widget {
         if( $plugins->have_posts() ):
             while( $plugins->have_posts() ):
                 $plugins->the_post();
-                # the_title();
                 $slug = get_post_meta( get_the_ID(), 'plugin_slug', true );
-                # echo $slug;
                 echo $SSP->get_plugin_info_list( $slug );
             endwhile;
         endif;
@@ -77,9 +75,7 @@ class SWER_Theme_Info_Widget extends WP_Widget {
         if( $plugins->have_posts() ):
             while( $plugins->have_posts() ):
                 $plugins->the_post();
-                # the_title();
                 $slug = get_post_meta( get_the_ID(), 'theme_slug', true );
-                # echo $slug;
                 echo $SSP->get_theme_info_list( $slug );
             endwhile;
         endif;
