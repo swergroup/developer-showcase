@@ -18,6 +18,9 @@ It provides some helpers:
 * fetch (and cache in transient) plugin/theme info from the latest readme.txt file
 * fetch (and cache in transient) rating / support / downloads info
 * plugin info from readme file as custom post metadata
+
+Planned in the next release:
+
 * widgets with plugin info
 * shortcodes
 
@@ -35,3 +38,5 @@ First release
 
 
 == Shortcodes ==
+
+Planned in the next release.

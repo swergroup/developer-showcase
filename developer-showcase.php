@@ -179,7 +179,7 @@ class SWER_Developer_Showcase {
             case 'plugin_downloads':
                 echo '<div class="aligncenter">';
                 echo '<strong>'.$wpinfo['count'].'</strong> ';
-                echo '<span class="sparkline" data-values="'.$this->get_remote_stats( $slug, 14).'"></span>';
+                echo '<span class="sparkline" data-values="'.$this->get_remote_stats( $slug, 14, 'plugin').'"></span>';
                 echo '</div>';
             break;
             
@@ -205,7 +205,7 @@ class SWER_Developer_Showcase {
             case 'theme_downloads':
                 echo '<div class="aligncenter">';
                 echo '<strong>'.$wpinfo['count'].'</strong> ';
-                echo '<span class="sparkline" data-values="'.$this->get_remote_stats( $slug, 14).'"></span>';
+                echo '<span class="sparkline" data-values="'.$this->get_remote_stats( $slug, 14, 'theme').'"></span>';
                 echo '</div>';
             break;
             
@@ -263,10 +263,10 @@ class SWER_Developer_Showcase {
 *---------------------------------------------*/
 
 
-    public function get_remote_stats( $slug, $days=30){
+    public function get_remote_stats( $slug, $days=30, $post_type="plugin"){
         $key = '_swer_sp_'.$slug.'_remote_stats';
         if ( false === ( $sparkline = get_transient( $key ) ) ) {
-            $stats = wp_remote_get( 'http://api.wordpress.org/stats/plugin/1.0/downloads.php?slug='.$slug.'&limit='.$days.'&callback=?' );
+            $stats = wp_remote_get( 'http://api.wordpress.org/stats/'.$post_type.'/1.0/downloads.php?slug='.$slug.'&limit='.$days.'&callback=?' );
             if( ! is_wp_error( $stats ) ):
                 $out = array();
                 $data = json_decode($stats['body'],true);
@@ -366,7 +366,7 @@ class SWER_Developer_Showcase {
             $out.= '<li><strong><a href="http://wordpress.org/extend/plugins/'.$slug.'/">'.$readme['name'].'</a></strong></li>';
             $out.= '<li><strong>Stable Tag</strong>: <a href="'.$svn_link.'">'.$readme['stable_tag'].'</a></li>';
             $out.= '<li><strong>Requires</strong> '.$readme['requires_at_least'].' &mdash; <strong>Tested</strong> '.$readme['tested_up_to'].'</li>';
-            $out.= '<li><strong>Downloads</strong>: '.$wpinfo['count'].' <span class="sparkline">'.$this->get_remote_stats( $slug ).'</span></li>';
+            $out.= '<li><strong>Downloads</strong>: '.$wpinfo['count'].' <span class="sparkline">'.$this->get_remote_stats( $slug, 15, 'plugin').'</span></li>';
             $out.= '<li><strong>Rating</strong>: '.$wpinfo['rating'].'</li>';
             $out.= '<li><strong>Support</strong>: '.$wpinfo['support'].'</li>';
             $out.= '<li><strong>Committers</strong>: '.join(', ', $readme['contributors']).'</li>';
@@ -394,7 +394,7 @@ class SWER_Developer_Showcase {
             $out = '<ul>';
             $out.= '<li><strong><a href="http://wordpress.org/extend/themes/'.$slug.'/">'.$wpinfo['name'].'</a></strong></li>';
             $out.= '<li><strong>Version</strong>: <a href="'.$svn_link.'">'.$wpinfo['version'].'</a></li>';
-            $out.= '<li><strong>Downloads</strong>: '.$wpinfo['count'].' <span class="sparkline">'.$this->get_remote_stats( $slug ).'</span></li>';
+            $out.= '<li><strong>Downloads</strong>: '.$wpinfo['count'].' <span class="sparkline">'.$this->get_remote_stats( $slug, 15, 'theme').'</span></li>';
             $out.= '<li><strong>Rating</strong>: '.$wpinfo['rating'].'</li>';
             $out.= '<li><strong>Support</strong>: '.$wpinfo['support'].'</li>';
             $out.= '';
