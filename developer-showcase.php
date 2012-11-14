@@ -15,11 +15,11 @@ Author URI: http://swergroup.com
 
 
 register_uninstall_hook( __FILE__, 'swer_developer_showcase_uninstall' );
-function swer_showcase_plugin_uninstall(){
-    //
+function swer_developer_showcase_uninstall(){
+    // none yet
 }
 
-class SWER_Showcase_Plugin {
+class SWER_Developer_Showcase {
 	 
 	/*--------------------------------------------*
 	 * Constructor
@@ -65,31 +65,19 @@ class SWER_Showcase_Plugin {
 		load_plugin_textdomain( 'swer-developer-showcase', false, dirname( plugin_basename( __FILE__ ) ) . '/lang' );
 	}
 
-	/**
-	 * Registers and enqueues admin-specific styles.
-	 */
 	public function _register_admin_styles() {
 		wp_enqueue_style( 'swer-developer-showcase-admin-styles', plugins_url( 'wp-plugins-showcase/css/admin.css' ) );
 	} // end register_admin_styles
 
-	/**
-	 * Registers and enqueues admin-specific JavaScript.
-	 */	
 	public function _register_admin_scripts() {
 	    wp_enqueue_script( 'jquery' );
 		wp_enqueue_script( 'swer-developer-showcase-admin-script', plugins_url( 'wp-plugins-showcase/lib/sparkline.min.js' ), 'jquery');	
 	} // end register_admin_scripts
 	
-	/**
-	 * Registers and enqueues plugin-specific styles.
-	 */
 	public function _register_plugin_styles() {
 		wp_enqueue_style( 'swer-developer-showcase-plugin-styles', plugins_url( 'wp-plugins-showcase/css/display.css' ) );	
 	} // end register_plugin_styles
 	
-	/**
-	 * Registers and enqueues plugin-specific scripts.
-	 */
 	public function _register_plugin_scripts() {	
 		wp_enqueue_script( 'swer-developer-showcase-plugin-script', plugins_url( 'wp-plugins-showcase/js/display.js' ) );
 	
@@ -171,9 +159,7 @@ class SWER_Showcase_Plugin {
     function admin_menu_display(){
         // move to external class
     }
-    
-    
-    
+
     public function manage_plugin_posts_columns( $post_columns ){
         $post_columns['plugin_info'] = 'Plugin Info';
         $post_columns['plugin_downloads'] = 'Downloads';
@@ -209,7 +195,6 @@ class SWER_Showcase_Plugin {
     
     public function manage_theme_posts_custom_column( $column, $post_id ){
         $slug = get_post_meta( $post_id, 'theme_slug', true );
-        $parsed = $this->get_remote_readme_file( $slug );
         $wpinfo = $this->get_theme_remote_info( $slug );
         switch( $column ):
             case 'theme_info':
@@ -228,10 +213,6 @@ class SWER_Showcase_Plugin {
     }
 
 
-    
-    
-    
-    
 
     public function _add_meta_boxes(){
         add_meta_box( 'showcase_plugins_readme', "Plugin Info", array(&$this,'metabox_readme'), 'plugin', 'side', 'core' ); 
@@ -350,15 +331,17 @@ class SWER_Showcase_Plugin {
         if ( false === ( $theme_remote_info = get_transient( $key ) ) ) {
     	    $res = wp_remote_get( 'http://wordpress.org/extend/themes/'.$slug.'/' );
             if( ! is_wp_error( $res ) ):
+                preg_match( '/itemprop\=\"name\">(.*)\<\/h2>/', $res['body'], $name );
                 preg_match( '/Downloads\:\<\/strong\>(.*)\<\/li\>/', $res['body'], $count );
-                preg_match( '/Download\ version\ (.*)\<\/a\>/', $res['body'], $version );
+                preg_match( '/\<a\ href\=\"(.*)\">Download\ version\ (.*)\<\/a\>/', $res['body'], $version );
                 preg_match( '/\<span\>(.*)\ out\ of\ (.*)\ stars\<\/span\>/', $res['body'], $rate );
                 preg_match( '/\<p\>(.*)\ of\ (.*)\ support\ threads/', $res['body'], $support );
                 $rate_value = (isset($rate[1])) ? $rate[1].'/'.$rate[2] : 'n/a';
                 $support_value = (isset($support[1])) ? $support[1].'/'.$support[2] : 'n/a';
                 $theme_remote_info = array(
+                    'name' => trim($name[1]),
                     'count' => trim($count[1]),
-                    'version' => $version[1],
+                    'version' => trim($version[2]),
                     'rating' => $rate_value,
                     'support' => $support_value
                 );
@@ -409,8 +392,8 @@ class SWER_Showcase_Plugin {
     	    $svn_link = $svn_base.$slug.'/'.$readme['version'].'/';
     	    
             $out = '<ul>';
-            $out.= '<li><strong><a href="http://wordpress.org/extend/themes/'.$slug.'/">'.$readme['name'].'</a></strong></li>';
-            $out.= '<li><strong>Version</strong>: <a href="'.$svn_link.'">'.$readme['version'].'</a></li>';
+            $out.= '<li><strong><a href="http://wordpress.org/extend/themes/'.$slug.'/">'.$wpinfo['name'].'</a></strong></li>';
+            $out.= '<li><strong>Version</strong>: <a href="'.$svn_link.'">'.$wpinfo['version'].'</a></li>';
             $out.= '<li><strong>Downloads</strong>: '.$wpinfo['count'].' <span class="sparkline">'.$this->get_remote_stats( $slug ).'</span></li>';
             $out.= '<li><strong>Rating</strong>: '.$wpinfo['rating'].'</li>';
             $out.= '<li><strong>Support</strong>: '.$wpinfo['support'].'</li>';
@@ -439,8 +422,7 @@ class SWER_Showcase_Plugin {
 
 } // end class
 
-// TODO: update the instantiation call of your plugin to the name given at the class definition
-$plugin_name = new SWER_Showcase_Plugin();
+$plugin_name = new SWER_Developer_Showcase();
 
 
 
@@ -451,16 +433,16 @@ $plugin_name = new SWER_Showcase_Plugin();
  * Widget
  *--------------------------------------------*/
 
-class SWER_PlugCheck_Widget extends WP_Widget {
+class SWER_Plugin_Info_Widget extends WP_Widget {
 
     
-    function SWER_PlugCheck_Widget(){ 
+    function SWER_Plugin_Info_Widget(){ 
         $widget_ops = $control_ops = array();
-        $this->WP_Widget( 'swer-plugcheck-widget', 'SWER PlugCheck', $widget_ops, $control_ops );		
+        $this->WP_Widget( 'swer-plugin-info-widget', 'Plugin Info', $widget_ops, $control_ops );		
     }
 
     function widget(){ 
-        $SSP = new SWER_Showcase_Plugin;
+        $SSP = new SWER_Developer_Showcase;
         $args = array( 'post_type'=>'plugin', 'posts_per_page'=>'1');
         $plugins = new WP_Query( $args );
         if( $plugins->have_posts() ):
@@ -481,4 +463,4 @@ class SWER_PlugCheck_Widget extends WP_Widget {
 }
 
 
-add_action('widgets_init', create_function('', 'return register_widget("SWER_PlugCheck_Widget");'));
+add_action('widgets_init', create_function('', 'return register_widget("SWER_Plugin_Info_Widget");'));

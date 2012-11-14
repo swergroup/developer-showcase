@@ -1,12 +1,12 @@
 === Developer Showcase ===
 Contributors: swergroup, pixline
 Donate link: http://swergroup.com/
-Tags: showcase, plugin, plugins, custom post type, portfolio
+Tags: showcase, plugin, plugins, custom post type, portfolio, developer, developers
 Requires at least: 3.4.2
 Tested up to: 3.4.2
 Stable tag: trunk
 
-Plugin showcase manager for WordPress plugin developers. 
+Plugin/theme showcase plugin for WordPress plugin/theme authors and developers. 
 
 == Description ==
 
@@ -18,7 +18,8 @@ It provides some helpers:
 * fetch (and cache in transient) plugin/theme info from the latest readme.txt file
 * fetch (and cache in transient) rating / support / downloads info
 * plugin info from readme file as custom post metadata
-* widgets and shortcodes
+* widgets with plugin info
+* shortcodes
 
 == Installation ==
 
@@ -31,3 +32,6 @@ It provides some helpers:
 
 = 0.3 = 
 First release
+
+
+== Shortcodes ==
