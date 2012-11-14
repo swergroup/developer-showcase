@@ -426,7 +426,7 @@ class SWER_Plugin_Info_Widget extends WP_Widget {
     
     function SWER_Plugin_Info_Widget(){ 
         $widget_ops = $control_ops = array();
-        $this->WP_Widget( 'swer-plugin-info-widget', 'Plugin Info', $widget_ops, $control_ops );		
+        $this->WP_Widget( 'swer-plugin-info-widget', 'WP Plugin Info', $widget_ops, $control_ops );		
     }
 
     function widget(){ 
@@ -451,4 +451,4 @@ class SWER_Plugin_Info_Widget extends WP_Widget {
 }
 
 
-add_action('widgets_init', create_function('', 'return register_widget("SWER_Plugin_Info_Widget");'));
+#add_action('widgets_init', create_function('', 'return register_widget("SWER_Plugin_Info_Widget");'));
