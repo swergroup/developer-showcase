@@ -1,4 +1,4 @@
-=== Plugins Showcase ===
+=== Developer Showcase ===
 Contributors: swergroup, pixline
 Donate link: http://swergroup.com/
 Tags: showcase, plugin, plugins, custom post type, portfolio

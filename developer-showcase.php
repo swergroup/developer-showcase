@@ -1,8 +1,8 @@
 <?php
 /*
-Plugin Name: Plugins Showcase
-Plugin URI: #
-Description: Plugin showcase manager for WordPress plugin developers. 
+Plugin Name: Developer Showcase
+Plugin URI: http://wordpress.org/extend/plugins/developer-showcase/
+Description: Plugin showcase manager for WordPress plugin/theme developers. 
 Author: SWERgroup
 Version: 0.3
 Author URI: http://swergroup.com
@@ -10,13 +10,13 @@ Author URI: http://swergroup.com
 
 /*
  * Includes code from:
- * https://code.google.com/p/wordpress-plugin-readme-parser/
+ * https://github.com/markjaquith/WordPress-Plugin-Readme-Parser
  */
 
 
-register_uninstall_hook( __FILE__, 'swer_showcasw_plugin_uninstall' );
-function swer_showcasw_plugin_uninstall(){
-    
+register_uninstall_hook( __FILE__, 'swer_developer_showcase_uninstall' );
+function swer_showcase_plugin_uninstall(){
+    //
 }
 
 class SWER_Showcase_Plugin {
@@ -53,35 +53,23 @@ class SWER_Showcase_Plugin {
 		add_action( 'wp_enqueue_scripts', array( &$this, '_register_admin_scripts' ) );
 	} // end constructor
 	
-	/**
-	 * Fired when the plugin is activated.
-	 *
-	 * @params	$network_wide	True if WPMU superadmin uses "Network Activate" action, false if WPMU is disabled or plugin is activated on an individual blog 
-	 */
 	public function activate( $network_wide ) {
+        // nothing to setup, yet
 	} // end activate
-	
-	/**
-	 * Fired when the plugin is deactivated.
-	 *
-	 * @params	$network_wide	True if WPMU superadmin uses "Network Activate" action, false if WPMU is disabled or plugin is activated on an individual blog 
-	 */
+
 	public function deactivate( $network_wide ) {
+        // nothing to setup, yet
 	} // end deactivate
 	
-
-	/**
-	 * Loads the plugin text domain for translation
-	 */
 	public function _textdomain() {
-		load_plugin_textdomain( 'swer-showcase-plugins', false, dirname( plugin_basename( __FILE__ ) ) . '/lang' );
+		load_plugin_textdomain( 'swer-developer-showcase', false, dirname( plugin_basename( __FILE__ ) ) . '/lang' );
 	}
 
 	/**
 	 * Registers and enqueues admin-specific styles.
 	 */
 	public function _register_admin_styles() {
-		wp_enqueue_style( 'swer-showcase-plugins-admin-styles', plugins_url( 'wp-plugins-showcase/css/admin.css' ) );
+		wp_enqueue_style( 'swer-developer-showcase-admin-styles', plugins_url( 'wp-plugins-showcase/css/admin.css' ) );
 	} // end register_admin_styles
 
 	/**
@@ -89,39 +77,39 @@ class SWER_Showcase_Plugin {
 	 */	
 	public function _register_admin_scripts() {
 	    wp_enqueue_script( 'jquery' );
-		wp_enqueue_script( 'swer-showcase-plugins-admin-script', plugins_url( 'wp-plugins-showcase/lib/sparkline.min.js' ), 'jquery');	
+		wp_enqueue_script( 'swer-developer-showcase-admin-script', plugins_url( 'wp-plugins-showcase/lib/sparkline.min.js' ), 'jquery');	
 	} // end register_admin_scripts
 	
 	/**
 	 * Registers and enqueues plugin-specific styles.
 	 */
 	public function _register_plugin_styles() {
-		wp_enqueue_style( 'swer-showcase-plugins-plugin-styles', plugins_url( 'wp-plugins-showcase/css/display.css' ) );	
+		wp_enqueue_style( 'swer-developer-showcase-plugin-styles', plugins_url( 'wp-plugins-showcase/css/display.css' ) );	
 	} // end register_plugin_styles
 	
 	/**
 	 * Registers and enqueues plugin-specific scripts.
 	 */
 	public function _register_plugin_scripts() {	
-		wp_enqueue_script( 'swer-showcase-plugins-plugin-script', plugins_url( 'wp-plugins-showcase/js/display.js' ) );
+		wp_enqueue_script( 'swer-developer-showcase-plugin-script', plugins_url( 'wp-plugins-showcase/js/display.js' ) );
 	
 	} // end register_plugin_scripts
 
     public function _register_post_types() {
       $p_labels = array(
-        'name' => _x('Plugins', 'post type general name', 'swer-showcase-plugins'),
-        'singular_name' => _x('Plugin', 'post type singular name', 'swer-showcase-plugins'),
-        'add_new' => _x('Add New', 'plugin', 'swer-showcase-plugins'),
-        'add_new_item' => __('Add New Plugin', 'swer-showcase-plugins'),
-        'edit_item' => __('Edit Plugin', 'swer-showcase-plugins'),
-        'new_item' => __('New Plugin', 'swer-showcase-plugins'),
-        'all_items' => __('All Plugins', 'swer-showcase-plugins'),
-        'view_item' => __('View Plugin', 'swer-showcase-plugins'),
-        'search_items' => __('Search Plugins', 'swer-showcase-plugins'),
-        'not_found' =>  __('No plugin found', 'swer-showcase-plugins'),
-        'not_found_in_trash' => __('No plugin found in Trash', 'swer-showcase-plugins'), 
+        'name' => _x('Plugins', 'post type general name', 'swer-developer-showcase'),
+        'singular_name' => _x('Plugin', 'post type singular name', 'swer-developer-showcase'),
+        'add_new' => _x('Add New', 'plugin', 'swer-developer-showcase'),
+        'add_new_item' => __('Add New Plugin', 'swer-developer-showcase'),
+        'edit_item' => __('Edit Plugin', 'swer-developer-showcase'),
+        'new_item' => __('New Plugin', 'swer-developer-showcase'),
+        'all_items' => __('All Plugins', 'swer-developer-showcase'),
+        'view_item' => __('View Plugin', 'swer-developer-showcase'),
+        'search_items' => __('Search Plugins', 'swer-developer-showcase'),
+        'not_found' =>  __('No plugin found', 'swer-developer-showcase'),
+        'not_found_in_trash' => __('No plugin found in Trash', 'swer-developer-showcase'), 
         'parent_item_colon' => '',
-        'menu_name' => __('WP Plugins', 'swer-showcase-plugins')
+        'menu_name' => __('WP Plugins', 'swer-developer-showcase')
 
       );
       $p_args = array(
@@ -131,7 +119,7 @@ class SWER_Showcase_Plugin {
         'show_ui' => true, 
         'show_in_menu' => true, 
         'query_var' => true,
-        'rewrite' => array( 'slug' => _x( 'wordpress-plugins', 'URL slug', 'swer-showcase-plugins' ) ),
+        'rewrite' => array( 'slug' => _x( 'wordpress-plugins', 'URL slug', 'swer-developer-showcase' ) ),
         'capability_type' => 'page',
         'has_archive' => true, 
         'hierarchical' => false,
@@ -141,19 +129,19 @@ class SWER_Showcase_Plugin {
       register_post_type( 'plugin', $p_args);
       
       $t_labels = array(
-        'name' => _x('Themes', 'post type general name', 'swer-showcase-plugins'),
-        'singular_name' => _x('Theme', 'post type singular name', 'swer-showcase-plugins'),
-        'add_new' => _x('Add New', 'theme', 'swer-showcase-plugins'),
-        'add_new_item' => __('Add New Theme', 'swer-showcase-plugins'),
-        'edit_item' => __('Edit Theme', 'swer-showcase-plugins'),
-        'new_item' => __('New Theme', 'swer-showcase-plugins'),
-        'all_items' => __('All Theme', 'swer-showcase-plugins'),
-        'view_item' => __('View Theme', 'swer-showcase-plugins'),
-        'search_items' => __('Search Theme', 'swer-showcase-plugins'),
-        'not_found' =>  __('No theme found', 'swer-showcase-plugins'),
-        'not_found_in_trash' => __('No theme found in Trash', 'swer-showcase-plugins'), 
+        'name' => _x('Themes', 'post type general name', 'swer-developer-showcase'),
+        'singular_name' => _x('Theme', 'post type singular name', 'swer-developer-showcase'),
+        'add_new' => _x('Add New', 'theme', 'swer-developer-showcase'),
+        'add_new_item' => __('Add New Theme', 'swer-developer-showcase'),
+        'edit_item' => __('Edit Theme', 'swer-developer-showcase'),
+        'new_item' => __('New Theme', 'swer-developer-showcase'),
+        'all_items' => __('All Theme', 'swer-developer-showcase'),
+        'view_item' => __('View Theme', 'swer-developer-showcase'),
+        'search_items' => __('Search Theme', 'swer-developer-showcase'),
+        'not_found' =>  __('No theme found', 'swer-developer-showcase'),
+        'not_found_in_trash' => __('No theme found in Trash', 'swer-developer-showcase'), 
         'parent_item_colon' => '',
-        'menu_name' => __('WP Themes', 'swer-showcase-plugins')
+        'menu_name' => __('WP Themes', 'swer-developer-showcase')
 
       );
       $t_args = array(
@@ -163,7 +151,7 @@ class SWER_Showcase_Plugin {
         'show_ui' => true, 
         'show_in_menu' => true, 
         'query_var' => true,
-        'rewrite' => array( 'slug' => _x( 'wordpress-themes', 'URL slug', 'swer-showcase-plugins' ) ),
+        'rewrite' => array( 'slug' => _x( 'wordpress-themes', 'URL slug', 'swer-developer-showcase' ) ),
         'capability_type' => 'page',
         'has_archive' => true, 
         'hierarchical' => false,
