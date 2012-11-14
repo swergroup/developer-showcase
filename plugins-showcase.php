@@ -40,8 +40,11 @@ class SWER_Showcase_Plugin {
         add_action( 'add_meta_boxes', array( &$this, '_add_meta_boxes' ));
 		add_action( 'admin_enqueue_scripts', array( &$this, '_register_admin_scripts' ) );
 		add_action( 'admin_menu', array( &$this, 'admin_menu' ) );
+		
         add_filter( 'manage_plugin_posts_columns', array( &$this, 'manage_plugin_posts_columns' ) );
         add_action( 'manage_plugin_posts_custom_column', array( &$this, 'manage_plugin_posts_custom_column' ), 10, 2);
+        add_filter( 'manage_theme_posts_columns', array( &$this, 'manage_theme_posts_columns' ) );
+        add_action( 'manage_theme_posts_custom_column', array( &$this, 'manage_theme_posts_custom_column' ), 10, 2);
         add_action( 'save_post', array( &$this, '_save_post' ) );
         #add_filter( 'the_content', array( &$this, 'the_content') );
                 
@@ -208,6 +211,35 @@ class SWER_Showcase_Plugin {
             
         endswitch;
     }
+
+
+    public function manage_theme_posts_columns( $post_columns ){
+        $post_columns['theme_info'] = 'Theme Info';
+        $post_columns['theme_downloads'] = 'Downloads';
+        return $post_columns;
+    }
+    
+    public function manage_theme_posts_custom_column( $column, $post_id ){
+        $slug = get_post_meta( $post_id, 'theme_slug', true );
+        $parsed = $this->get_remote_readme_file( $slug );
+        $wpinfo = $this->get_theme_remote_info( $slug );
+        switch( $column ):
+            case 'theme_info':
+                echo '<strong><a href="http://wordpress.org/extend/themes/'.$slug.'/">'.$parsed['name'].'</a></strong> <br>';
+                echo 'Rating: '.$wpinfo['rating'].' &mdash; Support: '.$wpinfo['support'];
+            break;
+            
+            case 'theme_downloads':
+                echo '<div class="aligncenter">';
+                echo '<strong>'.$wpinfo['count'].'</strong> ';
+                echo '<span class="sparkline" data-values="'.$this->get_remote_stats( $slug, 14).'"></span>';
+                echo '</div>';
+            break;
+            
+        endswitch;
+    }
+
+
     
     
     
@@ -215,18 +247,29 @@ class SWER_Showcase_Plugin {
 
     public function _add_meta_boxes(){
         add_meta_box( 'showcase_plugins_readme', "Plugin Info", array(&$this,'metabox_readme'), 'plugin', 'side', 'core' ); 
+        add_meta_box( 'showcase_themes_readme', "Theme Info", array(&$this,'metabox_readme'), 'theme', 'side', 'core' ); 
     }
 
     public function metabox_readme( $post ){
-        $slug = get_post_meta( $post->ID, 'plugin_slug', true );
         wp_nonce_field( plugin_basename( __FILE__ ), 'swer_sp_slug' );
-        echo '<label for="swer_sp_slug"><strong>';
-        _e("Plugin slug", 'myplugin_textdomain' );
-        echo '</strong></label> ';
-        echo '<input type="text" id="swer_sp_slug" name="swer_sp_slug" value="'.$slug.'" size="10" />';
-        
-        if( $slug ):
-            echo $this->get_plugin_info_list( $slug );
+        if( 'plugin' == get_post_type($post) ):
+            $slug = get_post_meta( $post->ID, 'plugin_slug', true );
+            echo '<label for="swer_sp_slug"><strong>';
+            _e("Plugin slug", 'myplugin_textdomain' );
+            echo '</strong></label> ';
+            echo '<input type="text" id="swer_sp_slug" name="swer_sp_slug" value="'.$slug.'" size="10" />';
+            if( $slug ):
+                echo $this->get_plugin_info_list( $slug );
+            endif;
+        elseif( 'theme' == get_post_type($post) ):
+            $slug = get_post_meta( $post->ID, 'theme_slug', true );
+            echo '<label for="swer_sp_slug"><strong>';
+            _e("Theme slug", 'myplugin_textdomain' );
+            echo '</strong></label> ';
+            echo '<input type="text" id="swer_sp_slug" name="swer_sp_slug" value="'.$slug.'" size="10" />';
+            if( $slug ):
+                echo $this->get_theme_info_list( $slug );
+            endif;
         endif;
     }
 
@@ -234,6 +277,8 @@ class SWER_Showcase_Plugin {
         if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) return;
         if( 'plugin' == $_POST['post_type'] ):
             update_post_meta( $post_id, 'plugin_slug', $_POST['swer_sp_slug'] );
+        elseif( 'theme' == $_POST['post_type'] ):
+            update_post_meta( $post_id, 'theme_slug', $_POST['swer_sp_slug'] );            
         endif;        
     }
 
@@ -310,17 +355,32 @@ class SWER_Showcase_Plugin {
     	}
     	return $plugin_remote_info;
 	}
-	
-	public function get_downloads( $slug ){
-	    $res = wp_remote_get( 'http://wordpress.org/extend/plugins/'.$slug.'/' );
-        if( ! is_wp_error( $res ) ):
-            preg_match( '/content\=\"UserDownloads\:(.*)\"/', $res['body'], $count );
-            return $count[1];
-        else:
-            return 'n/a';
-        endif;
-	}
-	
+
+    // <li><strong>Downloads:</strong> 124,352</li>
+    public function get_theme_remote_info( $slug ){
+	    $key = '_swer_sp_'.$slug.'_get_theme_remote_info';
+        if ( false === ( $theme_remote_info = get_transient( $key ) ) ) {
+    	    $res = wp_remote_get( 'http://wordpress.org/extend/themes/'.$slug.'/' );
+            if( ! is_wp_error( $res ) ):
+                preg_match( '/Downloads\:\<\/strong\>(.*)\<\/li\>/', $res['body'], $count );
+                preg_match( '/Download\ version\ (.*)\<\/a\>/', $res['body'], $version );
+                preg_match( '/\<span\>(.*)\ out\ of\ (.*)\ stars\<\/span\>/', $res['body'], $rate );
+                preg_match( '/\<p\>(.*)\ of\ (.*)\ support\ threads/', $res['body'], $support );
+                $rate_value = (isset($rate[1])) ? $rate[1].'/'.$rate[2] : 'n/a';
+                $support_value = (isset($support[1])) ? $support[1].'/'.$support[2] : 'n/a';
+                $theme_remote_info = array(
+                    'count' => trim($count[1]),
+                    'version' => $version[1],
+                    'rating' => $rate_value,
+                    'support' => $support_value
+                );
+            endif;
+            #set_transient( $key, $theme_remote_info, 60*15 );
+        }
+        return $theme_remote_info;    
+    }
+
+
 	public function get_plugin_info_list( $slug ){
 	    $key = '_swer_sp_'.$slug.'_get_plugin_info_list_';
         if ( false === ( $plugin_info = get_transient( $key ) ) ) {
@@ -348,6 +408,34 @@ class SWER_Showcase_Plugin {
         return $plugin_info;
 	}
 	
+
+
+	public function get_theme_info_list( $slug ){
+	    $key = '_swer_sp_'.$slug.'_get_theme_info_list_';
+        if ( false === ( $plugin_info = get_transient( $key ) ) ) {
+
+#    	    $readme = $this->get_remote_readme_file( $slug );
+    	    $wpinfo = $this->get_theme_remote_info( $slug );
+    	    
+    	    $svn_base = 'http://themes.svn.wordpress.org/';
+    	    $svn_link = $svn_base.$slug.'/'.$readme['version'].'/';
+    	    
+            $out = '<ul>';
+            $out.= '<li><strong><a href="http://wordpress.org/extend/themes/'.$slug.'/">'.$readme['name'].'</a></strong></li>';
+            $out.= '<li><strong>Version</strong>: <a href="'.$svn_link.'">'.$readme['version'].'</a></li>';
+            $out.= '<li><strong>Downloads</strong>: '.$wpinfo['count'].' <span class="sparkline">'.$this->get_remote_stats( $slug ).'</span></li>';
+            $out.= '<li><strong>Rating</strong>: '.$wpinfo['rating'].'</li>';
+            $out.= '<li><strong>Support</strong>: '.$wpinfo['support'].'</li>';
+            $out.= '';
+            $out.= '</ul>';
+            $plugin_info = $out;
+            set_transient( $key, $plugin_info, 60*15 );
+        }
+        return $plugin_info;
+	}
+
+
+
 	
 	
 	public function the_content( $content ){
