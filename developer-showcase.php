@@ -77,9 +77,11 @@ class SWER_Developer_Showcase {
 		#wp_enqueue_style( 'swer-developer-showcase-plugin-styles', plugins_url( 'wp-plugins-showcase/css/display.css' ) );	
 	} // end register_plugin_styles
 	
-	public function _register_plugin_scripts() {	
-	    wp_enqueue_script( 'jquery' );
-		wp_enqueue_script( 'swer-developer-showcase-admin-script', plugins_url( 'developer-showcase/lib/sparkline.min.js' ), 'jquery');	
+	public function _register_plugin_scripts( $hook ) {	
+	    if( ('edit.php' === $hook) || ('post.php' === $hook) || ! is_admin() ):
+	        wp_enqueue_script( 'jquery' );
+		    wp_enqueue_script( 'swer-developer-showcase-admin-script', plugins_url( 'developer-showcase/lib/sparkline.min.js' ), 'jquery');	
+	    endif;
 	} // end register_plugin_scripts
 
     public function _register_post_types() {
