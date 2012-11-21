@@ -4,7 +4,7 @@ Plugin Name: Developer Showcase
 Plugin URI: http://wordpress.org/extend/plugins/developer-showcase/
 Description: Plugin showcase manager for WordPress plugin/theme developers. 
 Author: SWERgroup
-Version: 0.3
+Version: 0.4
 Author URI: http://swergroup.com
 */
 
@@ -50,6 +50,7 @@ class SWER_Developer_Showcase {
                 
 		#add_action( 'admin_print_styles', array( $this, 'register_admin_styles' ) );
 		#add_action( 'wp_enqueue_scripts', array( $this, 'register_admin_styles' ) );
+		add_action( 'admin_enqueue_scripts', array( &$this, '_register_plugin_scripts' ) );
 		add_action( 'wp_enqueue_scripts', array( &$this, '_register_plugin_scripts' ) );
 	} // end constructor
 	
