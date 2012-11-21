@@ -79,7 +79,7 @@ class SWER_Developer_Showcase {
 	
 	public function _register_plugin_scripts() {	
 	    wp_enqueue_script( 'jquery' );
-		wp_enqueue_script( 'swer-developer-showcase-admin-script', plugins_url( 'wp-plugins-showcase/lib/sparkline.min.js' ), 'jquery');	
+		wp_enqueue_script( 'swer-developer-showcase-admin-script', plugins_url( 'developer-showcase/lib/sparkline.min.js' ), 'jquery');	
 	} // end register_plugin_scripts
 
     public function _register_post_types() {
