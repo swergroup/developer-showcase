@@ -33,10 +33,12 @@ Planned in the next release:
 
 == Changelog ==
 
-= 0.3 = 
-First release
+= 0.4.1 =
 
+* FIX sparklines inclusion
+* FIX path mismatch
 
-== Shortcodes ==
+= Older releases = 
 
-Planned in the next release.
+* 0.4 internal release, GIT only
+* 0.3 First release
